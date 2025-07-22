@@ -1,0 +1,18 @@
+{
+  "name": "tally-xml-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "fast-xml-parser": "^5.2.5",
+    "jsonwebtoken": "^9.0.2",
+    "lodash-es": "^4.17.21",
+    "mysql2": "^3.6.0",
+    "xmlbuilder2": "^3.0.2"
+  }
+}

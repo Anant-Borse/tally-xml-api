@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tally XML Viewer</title>
+  </head>
+  <body>
+    <h2>Fetched Tally XML:</h2>
+    <pre id="xmlData">Loading...</pre>
+
+    <script>
+      async function fetchXML() {
+        const token = localStorage.getItem("token");
+        const res = await fetch("/api/tally/tally-xml", {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        });
+
+        const text = await res.text();
+        document.getElementById("xmlData").textContent = text;
+      }
+
+      fetchXML().catch((err) => {
+        document.getElementById("xmlData").textContent =
+          "Failed to load XML: " + err.message;
+      });
+    </script>
+  </body>
+</html>
