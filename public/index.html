@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tally XML Viewer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 1rem;
+      }
+
+      input,
+      select,
+      button {
+        margin: 0.5rem 0;
+        padding: 0.5rem;
+      }
+
+      #tableSelect {
+        max-height: 200px;
+        overflow-y: auto;
+        display: block;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        background: #f5f5f5;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Tally Table XML Fetcher</h2>
+
+    <label>JWT Token:</label><br />
+    <input
+      type="text"
+      id="token"
+      placeholder="Enter JWT token"
+      size="80"
+    /><br />
+
+    <label>Select Table:</label><br />
+    <select id="tableSelect" size="8">
+      <option value="config">config</option>
+      <option value="mst_attendance_type">mst_attendance_type</option>
+      <option value="mst_cost_category">mst_cost_category</option>
+      <option value="mst_cost_centre">mst_cost_centre</option>
+      <option value="mst_employee">mst_employee</option>
+      <option value="mst_godown">mst_godown</option>
+      <option value="mst_group">mst_group</option>
+      <option value="mst_gst_effective_rate">mst_gst_effective_rate</option>
+      <option value="mst_ledger">mst_ledger</option>
+      <option value="mst_opening_batch_allocation">
+        mst_opening_batch_allocation
+      </option>
+      <option value="mst_opening_bill_allocation">
+        mst_opening_bill_allocation
+      </option>
+      <option value="mst_payhead">mst_payhead</option>
+      <option value="mst_stock_group">mst_stock_group</option>
+      <option value="mst_stock_item">mst_stock_item</option>
+      <option value="mst_stockitem_standard_cost">
+        mst_stockitem_standard_cost
+      </option>
+      <option value="mst_stockitem_standard_price">
+        mst_stockitem_standard_price
+      </option>
+      <option value="mst_uom">mst_uom</option>
+      <option value="mst_vouchertype">mst_vouchertype</option>
+      <option value="trn_accounting">trn_accounting</option>
+      <option value="trn_attendance">trn_attendance</option>
+      <option value="trn_bank">trn_bank</option>
+      <option value="trn_batch">trn_batch</option>
+      <option value="trn_bill">trn_bill</option>
+      <option value="trn_closingstock_ledger">trn_closingstock_ledger</option>
+      <option value="trn_cost_category_centre">trn_cost_category_centre</option>
+      <option value="trn_cost_centre">trn_cost_centre</option>
+      <option value="trn_cost_inventory_category_centre">
+        trn_cost_inventory_category_centre
+      </option>
+      <option value="trn_employee">trn_employee</option>
+      <option value="trn_inventory">trn_inventory</option>
+      <option value="trn_inventory_accounting">trn_inventory_accounting</option>
+      <option value="trn_payhead">trn_payhead</option>
+      <option value="trn_voucher">trn_voucher</option>
+    </select>
+
+    <br />
+
+    <button onclick="fetchXML()">Fetch XML</button>
+
+    <h3>Response:</h3>
+    <pre id="output">XML will appear here...</pre>
+
+    <script>
+      async function fetchXML() {
+        const token = document.getElementById("token").value.trim();
+        const table = document.getElementById("tableSelect").value;
+        const output = document.getElementById("output");
+
+        if (!token) return alert("Please enter a token");
+
+        try {
+          const res = await fetch(`/api/tally/xml/${table}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const text = await res.text();
+          if (!res.ok) {
+            output.textContent = `Error ${res.status}: ${text}`;
+          } else {
+            output.textContent = text;
+          }
+        } catch (err) {
+          output.textContent = `Error: ${err.message}`;
+        }
+      }
+    </script>
+  </body>
+</html>
