@@ -1,0 +1,47 @@
+<form id="tokenForm">
+  <input type="text" id="companyId" placeholder="Company ID" required />
+  <input type="text" id="secret" placeholder="Secret Key" required />
+  <button type="submit">Generate Token</button>
+</form>
+
+<p id="statusMsg"></p>
+
+<script>
+  document
+    .getElementById("tokenForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault(); // Prevent form from submitting normally
+
+      const companyId = document.getElementById("companyId").value.trim();
+      const secret = document.getElementById("secret").value.trim();
+
+      if (!companyId || !secret) {
+        return alert("Please enter both Company ID and Secret");
+      }
+
+      try {
+        const res = await fetch("/api/generate-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ companyId, secret }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Store token in sessionStorage
+          sessionStorage.setItem("jwtToken", data.token);
+          alert("Token generated and saved!");
+
+          // Redirect to index.html
+          window.location.href = "/index.html";
+        } else {
+          alert("Error: " + (data.message || "Token generation failed"));
+        }
+      } catch (err) {
+        alert("Request failed: " + err.message);
+      }
+    });
+</script>

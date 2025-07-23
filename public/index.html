@@ -8,20 +8,18 @@
         font-family: Arial, sans-serif;
         padding: 1rem;
       }
-
       input,
       select,
       button {
         margin: 0.5rem 0;
         padding: 0.5rem;
       }
-
       #tableSelect {
         max-height: 200px;
         overflow-y: auto;
         display: block;
+        width: 350px;
       }
-
       pre {
         white-space: pre-wrap;
         background: #f5f5f5;
@@ -30,18 +28,22 @@
         overflow-x: auto;
       }
     </style>
+    <script>
+      if (!sessionStorage.getItem("tally_token")) {
+        window.location.href = "/token.html";
+      }
+    </script>
   </head>
   <body>
     <h2>Tally Table XML Fetcher</h2>
 
-    <label>JWT Token:</label><br />
+    <!-- <label>JWT Token:</label><br />
     <input
       type="text"
       id="token"
-      placeholder="Enter JWT token"
+      placeholder="Paste your token here"
       size="80"
-    /><br />
-
+    /><br /> -->
     <label>Select Table:</label><br />
     <select id="tableSelect" size="8">
       <option value="config">config</option>
@@ -96,30 +98,36 @@
     <pre id="output">XML will appear here...</pre>
 
     <script>
+      // Fetch token from sessionStorage on page load
+      const token = sessionStorage.getItem("jwtToken");
+
+      if (!token) {
+        // Redirect to token.html if token is missing
+        alert("No token found. Redirecting to token page...");
+        window.location.href = "/token.html";
+      }
+
       async function fetchXML() {
-        const token = document.getElementById("token").value.trim();
         const table = document.getElementById("tableSelect").value;
         const output = document.getElementById("output");
 
-        if (!token) return alert("Please enter a token");
-
         try {
           const res = await fetch(`/api/tally/xml/${table}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           });
 
           const text = await res.text();
-          if (!res.ok) {
-            output.textContent = `Error ${res.status}: ${text}`;
-          } else {
-            output.textContent = text;
-          }
+          output.textContent = res.ok ? text : `Error ${res.status}: ${text}`;
         } catch (err) {
           output.textContent = `Error: ${err.message}`;
         }
       }
+
+      function logout() {
+        sessionStorage.removeItem("jwtToken");
+        window.location.href = "/token.html";
+      }
     </script>
+    <button onclick="logout()">Logout</button>
   </body>
 </html>
