@@ -29,7 +29,8 @@
       }
     </style>
     <script>
-      if (!sessionStorage.getItem("tally_token")) {
+      const token = sessionStorage.getItem("tally_token");
+      if (!token) {
         window.location.href = "/token.html";
       }
     </script>
@@ -98,16 +99,14 @@
     <pre id="output">XML will appear here...</pre>
 
     <script>
-      // Fetch token from sessionStorage on page load
-      const token = sessionStorage.getItem("jwtToken");
-
-      if (!token) {
-        // Redirect to token.html if token is missing
-        alert("No token found. Redirecting to token page...");
-        window.location.href = "/token.html";
-      }
-
       async function fetchXML() {
+        const token = sessionStorage.getItem("tally_token");
+        if (!token) {
+          alert("Token expired or missing. Redirecting...");
+          window.location.href = "/token.html";
+          return;
+        }
+
         const table = document.getElementById("tableSelect").value;
         const output = document.getElementById("output");
 
@@ -124,7 +123,7 @@
       }
 
       function logout() {
-        sessionStorage.removeItem("jwtToken");
+        sessionStorage.removeItem("tally_token");
         window.location.href = "/token.html";
       }
     </script>

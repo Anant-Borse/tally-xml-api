@@ -32,11 +32,12 @@
 
         if (res.ok) {
           // Store token in sessionStorage
-          sessionStorage.setItem("jwtToken", data.token);
+          sessionStorage.setItem("tally_token", data.token);
           alert("Token generated and saved!");
 
           // Redirect to index.html
-          window.location.href = "/index.html";
+          window.location.href =
+            location.protocol + "//" + location.host + "/index.html";
         } else {
           alert("Error: " + (data.message || "Token generation failed"));
         }
