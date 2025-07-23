@@ -1,8 +1,9 @@
 import pool from "../config/mysql.js";
 import parseLedgerDataToXML from "../utils/xmlParser.js";
 import js2xmlparser from "js2xmlparser";
+import { create } from "xmlbuilder2";
 
-// ✅ Step 1: List of tables you allow
+// ✅ Step 1: Whitelisted tables
 const allowedTables = [
   "config",
   "mst_attendance_type",
@@ -38,11 +39,11 @@ const allowedTables = [
   "trn_voucher",
 ];
 
-// ✅ Static route for mst_ledger only (uses custom parser)
+// ✅ Static route for mst_ledger (custom Tally format)
 export const getTallyXML = async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM mst_ledger");
-    const xml = parseLedgerDataToXML(rows);
+    const xml = parseLedgerDataToXML(rows); // Custom function
     res.set("Content-Type", "application/xml");
     res.send(xml);
   } catch (err) {
@@ -51,7 +52,7 @@ export const getTallyXML = async (req, res) => {
   }
 };
 
-// ✅ Dynamic route for any valid table (uses js2xmlparser)
+// ✅ Generic dynamic route — works for all other tables
 export const getTallyXMLByTable = async (req, res) => {
   const table = req.params.tableName;
 
@@ -62,19 +63,32 @@ export const getTallyXMLByTable = async (req, res) => {
   try {
     const [rows] = await pool.query(`SELECT * FROM ??`, [table]);
 
-    // Special case: use custom parser only for mst_ledger
+    // Use custom parser for specific tables
     if (table === "mst_ledger") {
       const xml = parseLedgerDataToXML(rows);
       res.set("Content-Type", "application/xml");
       return res.send(xml);
     }
 
-    // Default: use js2xmlparser for others
-    const xml = js2xmlparser.parse(table.toUpperCase(), { row: rows });
+    // ✅ Generic XML format for Tally import
+    const root = {
+      ENVELOPE: {
+        [`${table.toUpperCase()}LIST`]: rows.map((row) => ({
+          [table.toUpperCase()]: Object.fromEntries(
+            Object.entries(row).map(([key, value]) => [
+              key.toUpperCase(),
+              value ?? "",
+            ])
+          ),
+        })),
+      },
+    };
+
+    const xml = create(root).end({ prettyPrint: true });
     res.set("Content-Type", "application/xml");
     res.send(xml);
   } catch (err) {
-    console.error("Error generating dynamic XML:", err);
+    console.error("Error generating XML:", err);
     res.status(500).send("Internal Server Error");
   }
 };
