@@ -1,48 +1,168 @@
-<form id="tokenForm">
-  <input type="text" id="companyId" placeholder="Company ID" required />
-  <input type="text" id="secret" placeholder="Secret Key" required />
-  <button type="submit">Generate Token</button>
-</form>
-
-<p id="statusMsg"></p>
-
-<script>
-  document
-    .getElementById("tokenForm")
-    .addEventListener("submit", async function (e) {
-      e.preventDefault(); // Prevent form from submitting normally
-
-      const companyId = document.getElementById("companyId").value.trim();
-      const secret = document.getElementById("secret").value.trim();
-
-      if (!companyId || !secret) {
-        return alert("Please enter both Company ID and Secret");
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Token Login for Tally</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 1rem;
       }
 
-      try {
-        const res = await fetch("/api/generate-token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ companyId, secret }),
+      label,
+      input,
+      select,
+      button {
+        display: block;
+        margin: 10px 0;
+        font-size: 1rem;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Enter Tally Company ID and Secret</h2>
+    <form id="tokenForm">
+      <input type="text" id="companyId" placeholder="Company ID" required />
+      <input type="text" id="secret" placeholder="Secret Key" required />
+
+      <label for="table">Select Table</label>
+      <select id="table" required>
+        <option value="">-- Select a Table --</option>
+        <option value="config">config</option>
+        <option value="mst_attendance_type">mst_attendance_type</option>
+        <option value="mst_cost_category">mst_cost_category</option>
+        <option value="mst_cost_centre">mst_cost_centre</option>
+        <option value="mst_employee">mst_employee</option>
+        <option value="mst_godown">mst_godown</option>
+        <option value="mst_group">mst_group</option>
+        <option value="mst_gst_effective_rate">mst_gst_effective_rate</option>
+        <option value="mst_ledger">mst_ledger</option>
+        <option value="mst_opening_batch_allocation">
+          mst_opening_batch_allocation
+        </option>
+        <option value="mst_opening_bill_allocation">
+          mst_opening_bill_allocation
+        </option>
+        <option value="mst_payhead">mst_payhead</option>
+        <option value="mst_stock_group">mst_stock_group</option>
+        <option value="mst_stock_item">mst_stock_item</option>
+        <option value="mst_stockitem_standard_cost">
+          mst_stockitem_standard_cost
+        </option>
+        <option value="mst_stockitem_standard_price">
+          mst_stockitem_standard_price
+        </option>
+        <option value="mst_uom">mst_uom</option>
+        <option value="mst_vouchertype">mst_vouchertype</option>
+        <option value="trn_accounting">trn_accounting</option>
+        <option value="trn_attendance">trn_attendance</option>
+        <option value="trn_bank">trn_bank</option>
+        <option value="trn_batch">trn_batch</option>
+        <option value="trn_bill">trn_bill</option>
+        <option value="trn_closingstock_ledger">trn_closingstock_ledger</option>
+        <option value="trn_cost_category_centre">
+          trn_cost_category_centre
+        </option>
+        <option value="trn_cost_centre">trn_cost_centre</option>
+        <option value="trn_cost_inventory_category_centre">
+          trn_cost_inventory_category_centre
+        </option>
+        <option value="trn_employee">trn_employee</option>
+        <option value="trn_inventory">trn_inventory</option>
+        <option value="trn_inventory_accounting">
+          trn_inventory_accounting
+        </option>
+        <option value="trn_payhead">trn_payhead</option>
+        <option value="trn_voucher">trn_voucher</option>
+      </select>
+
+      <div class="btn-group">
+        <button type="submit" id="viewBtn">View XML</button>
+        <button type="button" id="downloadBtn">Download XML</button>
+      </div>
+    </form>
+
+    <script>
+      document
+        .getElementById("tokenForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const companyId = document.getElementById("companyId").value.trim();
+          const secret = document.getElementById("secret").value.trim();
+          const table = document.getElementById("table").value;
+
+          if (!companyId || !secret || !table) {
+            alert("Please fill all fields.");
+            return;
+          }
+
+          try {
+            const response = await fetch("/api/generate-token", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ companyId, secret }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              const token = data.token;
+
+              // Redirect to view XML
+              window.location.href = `/api/tally/xml/${table}?token=${token}`;
+            } else {
+              alert("Error: " + data.message);
+            }
+          } catch (err) {
+            console.error("Fetch error", err);
+            alert("Login failed");
+          }
         });
 
-        const data = await res.json();
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", async function () {
+          const companyId = document.getElementById("companyId").value.trim();
+          const secret = document.getElementById("secret").value.trim();
+          const table = document.getElementById("table").value;
 
-        if (res.ok) {
-          // Store token in sessionStorage
-          sessionStorage.setItem("tally_token", data.token);
-          alert("Token generated and saved!");
+          if (!companyId || !secret || !table) {
+            alert("Please fill all fields.");
+            return;
+          }
 
-          // Redirect to index.html
-          window.location.href =
-            location.protocol + "//" + location.host + "/index.html";
-        } else {
-          alert("Error: " + (data.message || "Token generation failed"));
-        }
-      } catch (err) {
-        alert("Request failed: " + err.message);
-      }
-    });
-</script>
+          try {
+            const response = await fetch("/api/generate-token", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ companyId, secret }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              const token = data.token;
+              // Trigger download
+              window.location.href = `/api/tally/xml/${table}/download?token=${token}`;
+            } else {
+              alert("Error: " + data.message);
+            }
+          } catch (err) {
+            console.error("Fetch error", err);
+            alert("Download failed");
+          }
+        });
+    </script>
+  </body>
+</html>

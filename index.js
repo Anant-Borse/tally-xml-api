@@ -14,12 +14,19 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+//token naviggate
+// Redirect root to token.html
+app.get("/", (req, res) => {
+  res.redirect("/token.html");
+});
+
+//api routes
 app.use("/api", tokenRoutes);
 app.use("/api/tally", tallyRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}/token.html`);
 });
 
 // import express from "express";
